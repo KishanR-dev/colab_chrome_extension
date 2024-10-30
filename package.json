@@ -1,0 +1,36 @@
+{
+  "name": "colab_static_reviewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "license": "AGPL-version-3.0",
+  "private": false,
+  "engines": {
+    "node": ">= 14.0.0",
+    "npm": ">= 6.0.0"
+  },
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": "",
+  "keywords": [],
+  "author": {
+    "name": "Joel Borrero",
+    "email": "joel.b@turing.com"
+  },
+  "contributors": [],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "compile": "npx tsc && npx tsc -p tsconfig.content.json",
+    "copy-assets": "rsync -a --exclude 'tsconfig*.json' --exclude 'src/**.ts' --exclude 'dist' --exclude 'dist_cleaner.js' --exclude 'dist.*' ./ dist/",
+    "build": "npm run clean && npm run compile && npm run copy-assets && npm run clean-dist",
+    "clean-dist": "node dist_cleaner.js"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.272",
+    "typescript": "^5.6.2"
+  }
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static Colab Analyzer</title>
+    <link rel="stylesheet" href="./panel.css">
+    <script src="panel.js" type="module"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Static Colab Analyzer</h1>
+        <div id="report"></div>
+        <h2>Problem solving</h2>
+        <button class="loading-button" id="askGPTBtn">Read prompt</button>
+        <textarea id="prompt" class="hidden"></textarea>
+        <button id="copyPromptBtn" class="hidden secondary">Copy to clipboard</button>
+        <div id="copyAnswersBtns" class="hidden">
+            <button id="copyExamplesBtn" class="secondary code-hover paragraph">Copy examples</button>
+            <button id="copySolutionBtn" class="secondary code-hover paragraph">Copy solution</button>
+            <button id="copyPythonBtn" class="secondary code-hover paragraph">Copy Python code</button>
+        </div>
+        <h2>LLM reviewer</h2>
+        <div class="row">
+            <button id="goToLLMReviewerBtn">LLM reviewer</button>
+            <button id="checkReviewBtn" class="secondary">Check review</button>
+        </div>
+        <h2>Python translator</h2>
+        <div class="row">
+            <button id="translateToPythonBtn" class="loading-button paragraph">Translate Swift to Python</button>
+            <button id="draftPythonTestsBtn" class="secondary paragraph">Draft Python tests</button>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+      "target": "ESNext",
+      "module": "none",
+      "outDir": "dist/src/scripts",
+    },
+    "include": ["src/scripts/read_cells.ts"],
+  }
