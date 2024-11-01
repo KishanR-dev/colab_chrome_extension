@@ -28,6 +28,8 @@ function readCells(): any[] {
                 codeCell = cell.getElementsByClassName('editor')[0] as HTMLElement
                 if (codeCell.getElementsByClassName('monaco-colorized').length > 0) {
                     codeCell = codeCell.getElementsByClassName('monaco-colorized')[0] as HTMLElement
+                } else if (codeCell.getElementsByClassName('editor-scrollable').length > 0) {
+                    codeCell = codeCell.getElementsByClassName('editor-scrollable')[0] as HTMLElement
                 }
             }
             cells.push({

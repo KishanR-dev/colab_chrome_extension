@@ -4,7 +4,7 @@
     "description": "This extension will help you to review the format and structure of your Google Colab notebooks",
     "manifest_version": 3,
     "permissions": [
-        "activeTab", "scripting", "sidePanel", "storage", "tabs"
+        "activeTab", "clipboardRead", "scripting", "sidePanel", "storage", "tabs"
     ],
     "side_panel": {
         "default_path": "src/side_panel/panel.html"

@@ -14,9 +14,11 @@
         <h1>Static Colab Analyzer</h1>
         <div id="report"></div>
         <h2>Problem solving</h2>
-        <button class="loading-button" id="askGPTBtn">Read prompt</button>
+        <div class="row">
+            <button class="loading-button" id="askGPTBtn">Read prompt</button>
+            <button id="copyPromptBtn" class="hidden secondary paragraph">Copy to clipboard</button>
+        </div>
         <textarea id="prompt" class="hidden"></textarea>
-        <button id="copyPromptBtn" class="hidden secondary">Copy to clipboard</button>
         <div id="copyAnswersBtns" class="hidden">
             <button id="copyExamplesBtn" class="secondary code-hover paragraph">Copy examples</button>
             <button id="copySolutionBtn" class="secondary code-hover paragraph">Copy solution</button>
@@ -31,6 +33,10 @@
         <div class="row">
             <button id="translateToPythonBtn" class="loading-button paragraph">Translate Swift to Python</button>
             <button id="draftPythonTestsBtn" class="secondary paragraph">Draft Python tests</button>
+        </div>
+        <h3>Other tools</h3>
+        <div class="row">
+            <button id="examplesFormatterBtn" class="secondary paragraph">Examples formatter</button>
         </div>
     </div>
 </body>

@@ -1,6 +1,6 @@
 import analyzeCells from "../background/background.js"
 import { answerPrompt, translateToPython } from "../background/gpt.js"
-import { translateTestsToPython } from "../background/static_translator.js"
+import { formatExamples, translateTestsToPython } from "../background/static_translator.js"
 import { Block, BlockType, Cell, MessageType } from "../models.js"
 import { buildSection } from "./html/html.js"
 
@@ -17,6 +17,7 @@ const report = document.getElementById('report')!
 const textArea = document.getElementById('prompt') as HTMLTextAreaElement
 const translateToPythonBtn: HTMLButtonElement = document.getElementById('translateToPythonBtn') as HTMLButtonElement
 const draftPythonTestsBtn: HTMLButtonElement = document.getElementById('draftPythonTestsBtn') as HTMLButtonElement
+const examplesFormatterBtn: HTMLButtonElement = document.getElementById('examplesFormatterBtn') as HTMLButtonElement
 
 document.addEventListener('DOMContentLoaded', analyzeColab)
 document.addEventListener('mouseenter', analyzeColab)
@@ -26,6 +27,7 @@ checkReviewBtn.addEventListener('click', checkThisReview)
 goToLLMReviewerBtn.addEventListener('click', goToLLMReviewer)
 translateToPythonBtn.addEventListener('click', translateSwiftToPython)
 draftPythonTestsBtn.addEventListener('click', draftPythonTests)
+examplesFormatterBtn.addEventListener('click', formatExamplesFromClipboard)
 
 function analyzeColab() {
   chrome.tabs.query({ active: true, currentWindow: true, url: "https://colab.research.google.com/drive/*" }, tabs => {
@@ -85,6 +87,7 @@ async function goToLLMReviewer() {
         await copyToClipboard(colabId, goToLLMReviewerBtn)
       }
       const url = `https://llm-reviewer.turing.com/colabs/review`
+      window.close()
       window.open(url, '_blank')
     })
   })
@@ -96,6 +99,7 @@ function checkThisReview() {
       const colabId = tabs[0].url?.split('/').pop()?.split('#')[0].split("?")[0]
       if (colabId) {
         const url = `https://llm-reviewer.turing.com/colabs/${colabId}/reviews`
+        window.close()
         window.open(url, '_blank')
       }
     })
@@ -104,20 +108,28 @@ function checkThisReview() {
 
 async function askGPT() {
   askGPTBtn.disabled = true
-  const response = await answerPrompt(prompt.value)
-  askGPTBtn.classList.add('hidden')
-  copyAnswersBtns.classList.remove('hidden')
-  textArea.style.height = '0px'
-  new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-    textArea.classList.add('hidden')
-    copyPromptBtn.classList.add('hidden')
-  })
-  copyExamplesBtn.addEventListener('click', () => copyToClipboard(response.examplesText ?? "", copyExamplesBtn))
-  copyExamplesBtn.setAttribute('data-code', response.examplesText ?? "")
-  copySolutionBtn.addEventListener('click', () => copyToClipboard(response.solution, copySolutionBtn))
-  copySolutionBtn.setAttribute('data-code', response.solution)
-  copyPythonBtn.addEventListener('click', () => copyToClipboard(response.python_code, copyPythonBtn))
-  copyPythonBtn.setAttribute('data-code', response.python_code)
+  try {
+    const response = await answerPrompt(prompt.value)
+    askGPTBtn.classList.add('hidden')
+    copyAnswersBtns.classList.remove('hidden')
+    textArea.style.height = '0px'
+    new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
+      textArea.classList.add('hidden')
+      copyPromptBtn.innerText = 'Copy prompt'
+      copyPromptBtn.classList.add('code-hover')
+      copyPromptBtn.setAttribute('data-code', prompt.value)
+    })
+    copyExamplesBtn.addEventListener('click', () => copyToClipboard(response.examplesText ?? "", copyExamplesBtn))
+    copyExamplesBtn.setAttribute('data-code', response.examplesText ?? "")
+    copySolutionBtn.addEventListener('click', () => copyToClipboard(response.solution, copySolutionBtn))
+    copySolutionBtn.setAttribute('data-code', response.solution)
+    copyPythonBtn.addEventListener('click', () => copyToClipboard(response.python_code, copyPythonBtn))
+    copyPythonBtn.setAttribute('data-code', response.python_code)
+  } catch (error) {
+    alert(error)
+  } finally {
+    askGPTBtn.disabled = false
+  }
 }
 
 async function translateSwiftToPython() {
@@ -159,4 +171,18 @@ function draftPythonTests() {
       draftPythonTestsBtn.textContent = 'Copy Python tests'
     })
   })
+}
+
+async function formatExamplesFromClipboard() {
+  /**
+   * Format examples from the clipboard and copy to the clipboard
+   */
+  const examples = await navigator.clipboard.readText()
+  const formattedExamples = formatExamples(examples)
+  if (formattedExamples) {
+    navigator.clipboard.writeText(formattedExamples)
+    alert("Formatted examples copied to the clipboard")
+  } else {
+    alert("No examples found in your clipboard")
+  }
 }

@@ -1,4 +1,54 @@
-import { convertToSnakeCase } from "./utils.js"
+import { convertToNaturalLanguage, convertToSnakeCase } from "./utils.js"
+
+
+function formatExamples(gptResponse: string): string {
+    let examplesText = ""
+    gptResponse = gptResponse.substring(gptResponse.indexOf("Example 1:"), gptResponse.indexOf("Solution"))
+    const examples = gptResponse.split("Example")
+    let index = 0
+    for (const example of examples) {
+        const lines = example.split("\n")
+        console.log(lines);
+        if (lines.length == 1) {
+            continue
+        }
+        index += 1
+        examplesText += `\n**Example ${index}:**\n`
+        let step = ""
+        lines.forEach((line) => {
+            line = line.replace("•", "")
+            if (line.includes("Input:")) {
+                step = "input"
+                examplesText += `- Input:\n`
+            } else if (line.includes("Output:")) {
+                step = "output"
+                examplesText += `- Output:\n`
+            } else if (line.includes("Explanation:")) {
+                line = line.trim()
+                step = "explanation"
+                if (!line.startsWith("- ")) {
+                    line = "- " + line
+                }
+                examplesText += `${line}\n`
+            } else if (line.trim() != "") {
+                // examplesText += `   - ${convertToNaturalLanguage(line.substring(2))}\n`
+                if (step == "input") {
+                    let variable = line.split(":")[0].trim()
+                    const value = line.split(":")[1].trim()
+                    variable = convertToNaturalLanguage(variable)
+                    examplesText += `    - ${variable}: ${value}\n`
+                } else if (step == "output") {
+                    line = line.trim()
+                    examplesText += `    - ${line}\n`
+                // } else if (step == "explanation") {
+                //     line = line.trim()
+                //     examplesText += `    - ${line}\n`
+                }
+            }
+        })
+    }
+    return examplesText
+}
 
 function translateTestsToPython(tests: string): string {
     // It was tested for single assert tests
@@ -66,4 +116,4 @@ function translateTestsToPython(tests: string): string {
     return lines.join("\n")
 }
 
-export { translateTestsToPython }
+export { formatExamples, translateTestsToPython }

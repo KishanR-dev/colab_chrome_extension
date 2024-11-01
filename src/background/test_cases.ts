@@ -10,19 +10,15 @@ function checkForTestCases(cells: Cell[]): Note[] {
      */
 
     function getTopComment(lines: string[], index: number, sharp: string): string {
-        let output = lines[index - 1]
-        let comment_lines = 1
-
-        while (index - comment_lines > 0) {
-            comment_lines += 1
-            const prev = lines[index - comment_lines]
-            if (prev.includes(sharp)) {
-                output = `${prev}${output.replace(sharp, '').trim()}`
-            } else {
-                break
+        let comment = '';
+        for (let i = index - 1; i >= 0; i--) {
+            const line = lines[i];
+            if (line.includes(sharp)) {
+                comment = line;
+                break;
             }
         }
-        return output
+        return comment;
     }
 
     const notes: Note[] = []
