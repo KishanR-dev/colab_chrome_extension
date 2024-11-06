@@ -67,6 +67,12 @@ function isSwiftCode(cell: Cell): boolean {
     return false
 }
 
+function convertToCamelCase(variable: string): string {
+    return variable
+        .replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+        .replace(/^([a-z])/, (match) => match.toUpperCase());
+}
+
 function convertToNaturalLanguage(variable: string): string {
     return variable
         .toLowerCase()
@@ -82,4 +88,4 @@ function convertToSnakeCase(variable: string): string {
         .replace(/([a-z])([0-9])/g, '$1_$2')
 }
 
-export { containsLanguageSpecificContent, convertToNaturalLanguage,  isCamelCase, isPythonCode, isSnakeCase, isSwiftCode, convertToSnakeCase }
+export { containsLanguageSpecificContent, convertToCamelCase, convertToNaturalLanguage, isCamelCase, isPythonCode, isSnakeCase, isSwiftCode, convertToSnakeCase }

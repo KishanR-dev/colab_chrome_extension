@@ -1,6 +1,6 @@
 import analyzeCells from "../background/background.js"
 import { answerPrompt, translateToPython } from "../background/gpt.js"
-import { formatExamples, translateTestsToPython } from "../background/static_translator.js"
+import { convertToUnitTest, formatExamples, translateTestsToPython } from "../background/static_translator.js"
 import { Block, BlockType, Cell, MessageType } from "../models.js"
 import { buildSection } from "./html/html.js"
 
@@ -18,6 +18,7 @@ const textArea = document.getElementById('prompt') as HTMLTextAreaElement
 const translateToPythonBtn: HTMLButtonElement = document.getElementById('translateToPythonBtn') as HTMLButtonElement
 const draftPythonTestsBtn: HTMLButtonElement = document.getElementById('draftPythonTestsBtn') as HTMLButtonElement
 const examplesFormatterBtn: HTMLButtonElement = document.getElementById('examplesFormatterBtn') as HTMLButtonElement
+const assertToUnitTestBtn: HTMLButtonElement = document.getElementById('assertToUnitTestBtn') as HTMLButtonElement
 
 document.addEventListener('DOMContentLoaded', analyzeColab)
 document.addEventListener('mouseenter', analyzeColab)
@@ -28,6 +29,7 @@ goToLLMReviewerBtn.addEventListener('click', goToLLMReviewer)
 translateToPythonBtn.addEventListener('click', translateSwiftToPython)
 draftPythonTestsBtn.addEventListener('click', draftPythonTests)
 examplesFormatterBtn.addEventListener('click', formatExamplesFromClipboard)
+assertToUnitTestBtn.addEventListener('click', convertToUnitTestHandler)
 
 function analyzeColab() {
   chrome.tabs.query({ active: true, currentWindow: true, url: "https://colab.research.google.com/drive/*" }, tabs => {
@@ -137,11 +139,11 @@ async function translateSwiftToPython() {
   chrome.tabs.query({ active: true, currentWindow: true, url: "https://colab.research.google.com/drive/*" }, tabs => {
     if (tabs[0] === undefined) { return; }
     chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.GET_CELLS }, async (cells: Cell[]) => {
-      const pythonCell = cells.find((c) => (new Block(c)).type === BlockType.SWIFT_CODE)
-      if (!pythonCell) {
+      const swiftCell = cells.find((c) => (new Block(c)).type === BlockType.SWIFT_CODE)
+      if (!swiftCell) {
         return
       }
-      const response = await translateToPython(pythonCell.content)
+      const response = await translateToPython(swiftCell.content)
       console.log(response);
       translateToPythonBtn.removeEventListener('click', translateSwiftToPython)
       translateToPythonBtn.setAttribute('data-code', response)
@@ -185,4 +187,21 @@ async function formatExamplesFromClipboard() {
   } else {
     alert("No examples found in your clipboard")
   }
+}
+function convertToUnitTestHandler() {
+  chrome.tabs.query({ active: true, currentWindow: true, url: "https://colab.research.google.com/drive/*" }, tabs => {
+    if (tabs[0] === undefined) { return; }
+    chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.GET_CELLS }, async (cells: Cell[]) => {
+      const pythonCell = cells.find((c) => (new Block(c)).type === BlockType.PYTHON_TEST)
+      if (!pythonCell) {
+        return
+      }
+      const response = convertToUnitTest(pythonCell.content)
+      assertToUnitTestBtn.removeEventListener('click', convertToUnitTestHandler)
+      assertToUnitTestBtn.setAttribute('data-code', response)
+      assertToUnitTestBtn.classList.add('code-hover')
+      assertToUnitTestBtn.addEventListener('click', () => copyToClipboard(response, assertToUnitTestBtn))
+      assertToUnitTestBtn.textContent = 'Copy unittest code'
+    })
+  })
 }
