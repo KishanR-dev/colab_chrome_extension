@@ -33,7 +33,11 @@ function convertToUnitTest(pythonCode: string): string {
 
 function formatExamples(gptResponse: string): string {
     let examplesText = ""
-    gptResponse = gptResponse.substring(gptResponse.indexOf("Example 1:"), gptResponse.indexOf("Solution"))
+    let rIndex: number | undefined = gptResponse.indexOf("Solution")
+    if (rIndex == -1) {
+        rIndex = undefined
+    }
+    gptResponse = gptResponse.substring(gptResponse.indexOf("Example 1:"), rIndex)
     const examples = gptResponse.split("Example")
     let index = 0
     for (const example of examples) {
@@ -52,10 +56,14 @@ function formatExamples(gptResponse: string): string {
                 examplesText += `- Input:\n`
             } else if (line.includes("Output:")) {
                 step = "output"
-                examplesText += `- Output:\n`
-            } else if (line.includes("Explanation:")) {
                 line = line.trim()
+                if (!line.startsWith("- ")) {
+                    line = "- " + line
+                }
+                examplesText += `${line}\n`
+            } else if (line.includes("Explanation:")) {
                 step = "explanation"
+                line = line.trim()
                 if (!line.startsWith("- ")) {
                     line = "- " + line
                 }
@@ -70,9 +78,9 @@ function formatExamples(gptResponse: string): string {
                 } else if (step == "output") {
                     line = line.trim()
                     examplesText += `    - ${line}\n`
-                // } else if (step == "explanation") {
-                //     line = line.trim()
-                //     examplesText += `    - ${line}\n`
+                    // } else if (step == "explanation") {
+                    //     line = line.trim()
+                    //     examplesText += `    - ${line}\n`
                 }
             }
         })
@@ -85,9 +93,11 @@ function translateTestsToPython(tests: string): string {
     tests = tests.replaceAll("// ", "# ")
     tests = tests.replaceAll("let ", "")
     tests = tests.replaceAll("var ", "")
+    tests = tests.replaceAll("nil", "None")
     tests = tests.replaceAll("false", "False")
     tests = tests.replaceAll("true", "True")
     tests = tests.replaceAll("||", "or")
+    tests = tests.replaceAll("?", "")
     const varRegex = /[a-z]+([A-Z]|[0-9])/g
     const colonRegex = /[a-z]+:/g
     const functionAttrRegex = /[a-zA-Z0-9]+\.[a-zA-Z0-9]+/g

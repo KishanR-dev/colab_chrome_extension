@@ -4,7 +4,10 @@ function checkForSolutionBlock(cells: Cell[]): Note[] {
     const notes: Note[] = []
     const solutionBlock = cells.find(cell => (new Block(cell)).type === BlockType.SOLUTION)
     if (solutionBlock) {
-        const content = solutionBlock.content.trim().replace("Assistant\n\n", "").replace("Solution\n\n", "")
+        const content = solutionBlock.content.trim()
+            .replace("Assistant\n\n", "")
+            .replace("Solution\n\n", "")
+            .replace("keyboard_arrow_down", "")
         if (content.length < 25) {
             notes.push({
                 blockName: 'Solution',

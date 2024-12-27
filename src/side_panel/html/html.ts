@@ -1,4 +1,4 @@
-import { Note } from "../../models.js"
+import { Note, Turn } from "../../models.js"
 
 
 function buildSection(name: string, cells: Note[], required: boolean = true): Node {
@@ -31,4 +31,27 @@ function buildSection(name: string, cells: Note[], required: boolean = true): No
     return div.firstChild!
 }
 
-export { buildSection }
+function buildTurnsSection(turns: Turn[]): Node {
+    const div = document.createElement('div')
+    turns.forEach((turn, index) => {
+        const header = document.createElement('div')
+        header.textContent = `Turn ${index + 1}`
+        div.appendChild(header)
+
+        const textArea = document.createElement('textarea')
+        textArea.textContent = turn.user
+        div.appendChild(textArea)
+
+        // elem.innerHTML = `<p>Assistant response: ${turn.assistant}</p>`
+        // const buttonAsk = document.createElement('button')
+        // buttonAsk.innerText = "Ask to server"
+        // buttonAsk.setAttribute('turn', index.toString())
+        // buttonAsk.setAttribute('prompt', turn.user)
+        // elem.appendChild(buttonAsk)
+        // elem.classList.add('row')
+        // div.appendChild(elem)
+    })
+    return div
+}
+
+export { buildSection, buildTurnsSection }

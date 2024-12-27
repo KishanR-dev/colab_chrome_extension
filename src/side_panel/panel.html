@@ -10,34 +10,84 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>Static Colab Analyzer</h1>
-        <div id="report"></div>
-        <h2>Problem solving</h2>
-        <div class="row">
-            <button class="loading-button" id="askGPTBtn">Read prompt</button>
-            <button id="copyPromptBtn" class="hidden secondary paragraph">Copy to clipboard</button>
+    <div class="tabs">
+        <div class="tab">
+            <label for="tab-1">Static Colab Analyzer</label>
+            <input id="tab-1" name="tabs-two" type="radio" checked="checked">
+            <div class="tab-content">
+                <div id="report"></div>
+                <h2>Problem solving</h2>
+                <div class="row">
+                    <button id="askGPTBtn" class="loading-button">Read prompt</button>
+                    <button id="copyPromptBtn" class="hidden secondary paragraph">Copy to clipboard</button>
+                </div>
+                <textarea id="prompt" class="hidden"></textarea>
+                <div id="copyAnswersBtns" class="hidden">
+                    <button id="copyExamplesBtn" class="secondary code-hover paragraph">Copy examples</button>
+                    <button id="copySolutionBtn" class="secondary code-hover paragraph">Copy solution</button>
+                    <button id="copyPythonBtn" class="secondary code-hover paragraph">Copy Python code</button>
+                </div>
+                <h2>LLM reviewer</h2>
+                <div class="row">
+                    <button id="goToLLMReviewerBtn">LLM reviewer</button>
+                    <button id="checkReviewBtn" class="secondary">Check review</button>
+                </div>
+                <h2>Python translator</h2>
+                <div class="row">
+                    <button id="translateToPythonBtn" class="loading-button paragraph">Translate Swift to
+                        Python</button>
+                    <button id="draftPythonTestsBtn" class="secondary paragraph">Draft Python tests</button>
+                </div>
+                <h3>Other tools</h3>
+                <div class="row">
+                    <button id="examplesFormatterBtn" class="secondary paragraph">Examples formatter</button>
+                    <button id="rewriteSolutionBtn" class="loading-button paragraph">Rewrite solution</button>
+                    <button id="assertToUnitTestBtn" class="secondary paragraph">Assert to unittest</button>
+                </div>
+            </div>
         </div>
-        <textarea id="prompt" class="hidden"></textarea>
-        <div id="copyAnswersBtns" class="hidden">
-            <button id="copyExamplesBtn" class="secondary code-hover paragraph">Copy examples</button>
-            <button id="copySolutionBtn" class="secondary code-hover paragraph">Copy solution</button>
-            <button id="copyPythonBtn" class="secondary code-hover paragraph">Copy Python code</button>
-        </div>
-        <h2>LLM reviewer</h2>
-        <div class="row">
-            <button id="goToLLMReviewerBtn">LLM reviewer</button>
-            <button id="checkReviewBtn" class="secondary">Check review</button>
-        </div>
-        <h2>Python translator</h2>
-        <div class="row">
-            <button id="translateToPythonBtn" class="loading-button paragraph">Translate Swift to Python</button>
-            <button id="draftPythonTestsBtn" class="secondary paragraph">Draft Python tests</button>
-        </div>
-        <h3>Other tools</h3>
-        <div class="row">
-            <button id="examplesFormatterBtn" class="secondary paragraph">Examples formatter</button>
-            <button id="assertToUnitTestBtn" class="secondary paragraph">Assert to unittest</button>
+        <div class="tab">
+            <label for="tab-2">RLHF helper</label>
+            <input id="tab-2" name="tabs-two" type="radio">
+            <div class="tab-content">
+                <div class="row">
+                    <h2>Language:</h2>
+                    <select id="languageDropdown">
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                    </select>
+                </div>
+                <h2>Generate turns</h2>
+                <div class="row">
+                    <button id="readRLHFPromptBtn" class="button">Read prompt</button>
+                    <button id="generateRLHFTurnsBtn" class="button loading-button">⚛️ | Generate turns</button>
+                </div>
+                <div class="row">
+                    <h2 style="display: inline-block; margin-right: 12px;">Compare answers</h2>
+                    <select id="turnDropdown">
+                        <option value="1">Turn 1</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <button id="readModelAnswersBtn" class="button">Read answer</button>
+                    <button id="showClipboardBtn" class="button">Paste from clipboard</button>
+                </div>
+                <div class="row">
+                    <button id="compareTurnBtn" class="button loading-button">⚛️ | Compare turn</button>
+                    <button id="copyToClipboardBtn" class="square" disabled>🔗</button>
+                    <button id="reEvaluateTurnBtn" class="button loading-button">⚛️ | Reevaluate</button>
+                    <div class="col">
+                        <h3>Code output (optional)</h3>
+                        <textarea id="codeOutput">Model A:
+
+Model B:
+</textarea>
+                    </div>
+                    <textarea id="comparisonResponse" hidden placeholder="Comparison response (json)"></textarea>
+                    <textarea id="requestedChanges" hidden placeholder="Requested changes"></textarea>
+                </div>
+                <div id="turnsSection"></div>
+            </div>
         </div>
     </div>
 </body>

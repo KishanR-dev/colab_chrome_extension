@@ -17,6 +17,10 @@ enum MessageType {
     GET_CELLS = "getCells",
     GET_PROMPT = "getPrompt",
     GPT_RESPONSE = "gptResponse",
+    GET_RLHF_PROMPT = "getRLHFPrompt",
+    GET_TURNS_COUNT = "getTurnsCount",
+    PASTE_RLHF_ANSWERS = "pasteRLHFAnswers",
+    READ_MODEL_ANSWERS = "readModelAnswers"
 }
 
 class Block {
@@ -119,6 +123,28 @@ interface GPTResponse {
     python_code: string,
 }
 
+interface Turn {
+    user: string,
+    assistant: string
+}
+
+interface RLHFAnswer {
+    score: string | null
+    comment: string
+}
+
+enum RLHFKey {
+    INSTRUCTION_FOLLOWING = "instruction_following",
+    TRUTHFULNESS = "truthfulness",
+    CONCISENESS = "conciseness",
+    CONTENT_SAFETY = "content_safety",
+    OVERALL_SATISFACTION = "overall_satisfaction",
+}
+
+interface RLHFAnswers {
+    [key: string]: RLHFAnswer
+}
+
 class PromptSections {
     static PROMPT = "Prompt: -"
     static KEYWORDS = "Keywords: -"
@@ -139,4 +165,4 @@ class PromptSections {
     }
 }
 
-export { Block, BlockType, Cell, ColabContent, GPTResponse, MessageType, Note, PromptSections }
+export { Block, BlockType, Cell, ColabContent, GPTResponse, MessageType, Note, PromptSections, RLHFAnswer, RLHFAnswers, RLHFKey, Turn }

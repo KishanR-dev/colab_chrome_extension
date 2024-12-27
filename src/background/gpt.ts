@@ -1,10 +1,12 @@
-import { GPTResponse } from "../models.js"
+import { GPTResponse, Turn } from "../models.js"
 import { convertToNaturalLanguage } from "./utils.js"
 
-const _host = "http://localhost:3000"
+// const _host = "http://localhost:3000"
+const _host = "https://fe2b-188-247-142-147.ngrok-free.app"
 
+// Static Colab Analyzer
 async function answerPrompt(prompt: string): Promise<GPTResponse> {
-    let response = await fetch(`${_host}/gpt/solve`, {
+    let response = await fetch(`${_host}/llm/translation/solve`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -26,8 +28,21 @@ async function answerPrompt(prompt: string): Promise<GPTResponse> {
     return gptResponse
 }
 
+async function rewriteSolution(text: string): Promise<string> {
+    text = text.replace("Assistant\n\n", "").replace("Solution\n\n", "")
+    let response = await fetch(`${_host}/llm/translation/rewrite`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text }),
+    })
+    const responseBody = await response.json()
+    return responseBody.text
+}
+
 async function translateToPython(code: string): Promise<string> {
-    let response = await fetch(`${_host}/gpt/translate`, {
+    let response = await fetch(`${_host}/llm/translation/translate`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -38,4 +53,41 @@ async function translateToPython(code: string): Promise<string> {
     return responseBody.code
 }
 
-export { answerPrompt, translateToPython }
+// RLHF helper
+async function generateRLHFConversation(prompt: string, language: string): Promise<Turn[]> {
+    let response = await fetch(`${_host}/llm/comparison/generate-turns`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt, language }),
+    })
+    const responseBody = await response.json()
+    return responseBody
+}
+
+async function compareModelAnswers(answers: Record<string, any>, codeOutput: string | null, language: string): Promise<string> {
+    let response = await fetch(`${_host}/llm/comparison/compare`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ ...answers, output: codeOutput, language }),
+    })
+    const responseBody = await response.json()
+    return responseBody
+}
+
+async function reEvaluateModelAnswers(answers: Record<string, any>, codeOutput: string, comparisonResponse: string, requestedChanges: string): Promise<string> {
+    let response = await fetch(`${_host}/llm/comparison/reevaluate`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ ...answers, output: codeOutput, comparisonResponse, requestedChanges }),
+    })
+    const responseBody = await response.json()
+    return responseBody
+}
+
+export { answerPrompt, compareModelAnswers, generateRLHFConversation, reEvaluateModelAnswers, rewriteSolution, translateToPython }

@@ -16,7 +16,8 @@
     "content_scripts": [
         {
             "matches": [
-                "https://colab.research.google.com/*"
+                "https://colab.research.google.com/*",
+                "https://rlhf-v3.turing.com/prompt/*"
             ],
             "js": [
                 "src/scripts/read_cells.js"

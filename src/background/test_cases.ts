@@ -49,7 +49,7 @@ function checkForTestCases(cells: Cell[]): Note[] {
             const line = lines[index]
 
             if (usesTestFramework) {
-                if (line.startsWith("class Test")) {
+                if (line.includes("(unittest.TestCase):")) {
                     currentTest = 0
                 } else if (currentTest !== null && (line.includes("  def test") || line.includes("func test"))) {
                     currentTest += 1
