@@ -132,7 +132,7 @@ function getModelAnswers(turn: number | null = null): Record<string, any> {
     function getText(copyBtn: Element): string {
         return copyBtn.parentElement?.parentElement?.getAttribute("text")!
     }
-    const turnContainers = Array.from(document.getElementsByClassName('turn-container'))
+    const turnContainers = Array.from(document.getElementsByClassName('ant-collapse-borderless')[0].children)
     const turnContainer = turnContainers[(turn ?? turnContainers.length) - 1]
     const copyBtns = turnContainer!.querySelectorAll('.anticon-copy:not(.markdown-body .anticon-copy)');
     return {
@@ -147,7 +147,7 @@ function getModelAnswers(turn: number | null = null): Record<string, any> {
  * @returns The number of turns
  */
 function getTurnsCount(): number {
-    return document.getElementsByClassName('turn-container').length
+    return document.getElementsByClassName('ant-collapse-borderless')[0].children.length
 }
 
 /**
@@ -158,8 +158,8 @@ function getTurnsCount(): number {
  */
 async function fillAnswers(answers: Record<string, any>, turn: number | null = null): Promise<string> {
     let collapseContents = Array.from(document.getElementsByClassName("ant-collapse-content")) // Model A, Model B, Compare
-    collapseContents = collapseContents.filter((_, i) => i % 4 !== 0)
-    turn = turn ?? collapseContents.length / 3
+    collapseContents = collapseContents.filter((elem, _) => elem.getElementsByClassName("ant-collapse-content").length == 0 && elem.getElementsByTagName("textarea").length > 0);
+    turn = turn ?? (collapseContents.length / 3)
     const modelAnswers = getModelAnswers(turn)
     const allDropdowns = []
     for (let i = (turn - 1) * 3; i < turn * 3; i++) {
