@@ -31,7 +31,7 @@ function buildSection(name: string, cells: Note[], required: boolean = true): No
     return div.firstChild!
 }
 
-function buildTurnsSection(turns: Turn[]): Node {
+function buildTurnsSection(turns: Turn[]): NodeList {
     const div = document.createElement('div')
     turns.forEach((turn, index) => {
         const header = document.createElement('div')
@@ -51,7 +51,7 @@ function buildTurnsSection(turns: Turn[]): Node {
         // elem.classList.add('row')
         // div.appendChild(elem)
     })
-    return div
+    return div.childNodes
 }
 
 export { buildSection, buildTurnsSection }

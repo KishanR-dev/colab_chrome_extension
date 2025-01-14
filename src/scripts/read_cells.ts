@@ -10,7 +10,7 @@ enum MessageType {
     GET_PROMPT = "getPrompt",
     GPT_RESPONSE = "gptResponse",
     GET_RLHF_PROMPT = "getRLHFPrompt",
-    GET_TURNS_COUNT = "getTurnsCount",
+    GET_TASK_INFO = "getTaskInfo",
     PASTE_RLHF_ANSWERS = "pasteRLHFAnswers",
     READ_MODEL_ANSWERS = "readModelAnswers"
 }
@@ -128,7 +128,7 @@ function readRLHFPrompt(): string {
  * @param turn - The turn number to read the answers from
  * @returns The prompt and the answers from both models
  */
-function getModelAnswers(turn: number | null = null): Record<string, any> {
+function getModelAnswers(turn: number | null = null): Record<'prompt' | 'model_a' | 'model_b', string> {
     function getText(copyBtn: Element): string {
         return copyBtn.parentElement?.parentElement?.getAttribute("text")!
     }
@@ -140,6 +140,17 @@ function getModelAnswers(turn: number | null = null): Record<string, any> {
         "model_a": getText(copyBtns[1]),
         "model_b": getText(copyBtns[2])
     }
+}
+
+/**
+ * Get the task ID from the back button
+ * @returns The task ID
+ */
+function getTaskId(): string {
+    const elements = Array.from(document.getElementsByTagName("a"))
+    const url: string = elements.filter((a) => a.getAttribute("href")?.includes("conversations")).map((a) => a.getAttribute("href")!)[0]
+    const taskId = url.match(/conversations\/(\d+)\//)![1]
+    return taskId
 }
 
 /**
@@ -156,7 +167,7 @@ function getTurnsCount(): number {
  * @param turn - The turn number to fill the answers from
  * @returns The message to display in the alert
  */
-async function fillAnswers(answers: Record<string, any>, turn: number | null = null): Promise<string> {
+async function fillAnswers(answers: Record<string, any>, turn: number | null = null, folderLinks: { model_a: string, model_b: string } | undefined): Promise<string> {
     let collapseContents = Array.from(document.getElementsByClassName("ant-collapse-content")) // Model A, Model B, Compare
     collapseContents = collapseContents.filter((elem, _) => elem.getElementsByClassName("ant-collapse-content").length == 0 && elem.getElementsByTagName("textarea").length > 0);
     turn = turn ?? (collapseContents.length / 3)
@@ -201,31 +212,33 @@ async function fillAnswers(answers: Record<string, any>, turn: number | null = n
             }
 
             // Copy links from previous turns
-            if (i > 2) {
-                let prevModel = collapseContents[i - 3]
-                let prevTextAreas = prevModel.getElementsByTagName("textarea")
+            if (true) {
+                let prevModel = i > 2 ? collapseContents[i - 3] : undefined
+                let prevTextAreas = prevModel?.getElementsByTagName("textarea")
 
                 // Code environment
-                let link = prevTextAreas[5].value
-                if (link.startsWith("https://")) {
-                    const copyLinkBtn = elementHandler.createButton(link, { onClickCopy: link })
-                    textAreas[5].parentElement?.insertBefore(copyLinkBtn, textAreas[5])
-                    const click = () => {
-                        copyLinkBtn.click()
-                        textAreas[5].removeEventListener("click", click)
+                if (prevTextAreas != undefined) {
+                    const link = prevTextAreas[5].value
+                    if (link.startsWith("https://")) {
+                        const copyLinkBtn = elementHandler.createButton(link, { onClickCopy: link })
+                        textAreas[5].parentElement?.insertBefore(copyLinkBtn, textAreas[5])
+                        const click = () => {
+                            copyLinkBtn.click()
+                            textAreas[5].removeEventListener("click", click)
+                        }
+                        textAreas[5].addEventListener("click", click)
                     }
-                    textAreas[5].addEventListener("click", click)
                 }
                 // Code screenshots folder
-                link = prevTextAreas[6].value
-                if (!link.startsWith("https://")) {
+                let link = prevTextAreas?.[6]?.value ?? folderLinks?.[modelKey]
+                if (link != undefined && !link.startsWith("https://")) {
                     prevModel = collapseContents[i - 6]
                     prevTextAreas = prevModel?.getElementsByTagName("textarea")
                     if (prevTextAreas != undefined) {
                         link = prevTextAreas[6].value
                     }
                 }
-                if (link.startsWith("https://") && textAreas[6].value != link) {
+                if (link?.startsWith("https://") && textAreas[6].value != link) {
                     const copyLinkBtn = elementHandler.createButton("Copy link", { onClickCopy: link })
                     textAreas[6].parentElement?.insertBefore(copyLinkBtn, textAreas[6])
                     const click = () => {
@@ -280,30 +293,32 @@ async function fillAnswers(answers: Record<string, any>, turn: number | null = n
     const container = document.getElementsByClassName("turn-container")[turn - 1]
     const chooseButtons = Array.from(container.getElementsByTagName("button")).filter((e) => e.textContent?.includes("Choose") &&
         e.parentElement?.parentElement?.childElementCount == 5)
-    if (chooseButtons.length < 2) {
-        return "Already chosen, answers pasted"
-    }
+    const buttonsTagged = chooseButtons.map((e) => {
+        const key = e.parentElement?.parentElement?.children[2].textContent?.split(" ")[1]
+        return { button: e, key }
+    })
     const score: string = answers["comparison"]["score"]
-    if (score.substring(6, 7) == "A") {
-        chooseButtons[0].click()
-    } else {
-        chooseButtons[1].click()
+    const button = buttonsTagged.find((e) => e.key == score.substring(6, 7))
+    if (button != undefined) {
+        button.button.click()
     }
     return score
 }
 
 chrome.runtime.onMessage.addListener(
-    async function (message: { source: MessageType, response?: GPTResponse, answers?: Record<string, any>, turn?: number }, _, sendResponse) {
+    async function (message: { source: MessageType, response?: GPTResponse, answers?: Record<string, any>, turn?: number, folderLinks?: { model_a: string, model_b: string } }, _, sendResponse) {
         if (message.source === MessageType.GET_CELLS || message.source === MessageType.GET_PROMPT) {
             sendResponse(readCells())
         } else if (message.source === MessageType.GET_RLHF_PROMPT) {
             sendResponse(readRLHFPrompt())
         } else if (message.source === MessageType.READ_MODEL_ANSWERS) {
             sendResponse(getModelAnswers(message.turn))
-        } else if (message.source === MessageType.GET_TURNS_COUNT) {
-            sendResponse(getTurnsCount())
+        } else if (message.source === MessageType.GET_TASK_INFO) {
+            const turnsCount = getTurnsCount()
+            const taskId = getTaskId()
+            sendResponse({ turnsCount, taskId })
         } else if (message.source === MessageType.PASTE_RLHF_ANSWERS) {
-            const response = await fillAnswers(message.answers!, message.turn)
+            const response = await fillAnswers(message.answers!, message.turn, message.folderLinks)
             alert(response)
             sendResponse(response)
         }

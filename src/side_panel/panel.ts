@@ -1,5 +1,5 @@
 import analyzeCells from "../background/background.js"
-import { answerPrompt, compareModelAnswers, generateRLHFConversation, reEvaluateModelAnswers, rewriteSolution, translateToPython } from "../background/gpt.js"
+import { answerPrompt, compareModelAnswers, createFoldersOnDrive, generateRLHFConversation, generateTestCode, reEvaluateModelAnswers, rewriteSolution, translateToPython, uploadScreenshotsOnDrive } from "../background/api.js"
 import { extractAnswersFromText } from "../background/rlhf.js"
 import { convertToUnitTest, formatExamples, translateTestsToPython } from "../background/static_translator.js"
 import { Block, BlockType, Cell, MessageType } from "../models.js"
@@ -14,7 +14,7 @@ const copySolutionBtn = document.getElementById('copySolutionBtn') as HTMLButton
 const copyPythonBtn = document.getElementById('copyPythonBtn') as HTMLButtonElement
 const checkReviewBtn = document.getElementById('checkReviewBtn') as HTMLButtonElement
 const goToLLMReviewerBtn = document.getElementById('goToLLMReviewerBtn') as HTMLButtonElement
-const prompt = document.getElementById('prompt') as HTMLTextAreaElement
+const promptTextArea = document.getElementById('prompt') as HTMLTextAreaElement
 const report = document.getElementById('report')!
 const textArea = document.getElementById('prompt') as HTMLTextAreaElement
 const translateToPythonBtn = document.getElementById('translateToPythonBtn') as HTMLButtonElement
@@ -23,6 +23,9 @@ const examplesFormatterBtn = document.getElementById('examplesFormatterBtn') as 
 const rewriteSolutionBtn = document.getElementById('rewriteSolutionBtn') as HTMLButtonElement
 const assertToUnitTestBtn = document.getElementById('assertToUnitTestBtn') as HTMLButtonElement
 // RLHF helper
+const createFoldersSection = document.getElementById('createFoldersSection') as HTMLDivElement
+const taskIdParagraph = document.getElementById('taskIdParagraph') as HTMLParagraphElement
+const copyTaskIdBtn = document.getElementById('copyTaskIdBtn') as HTMLButtonElement
 const readRLHFPromptBtn = document.getElementById('readRLHFPromptBtn') as HTMLButtonElement
 const generateRLHFTurnsBtn = document.getElementById('generateRLHFTurnsBtn') as HTMLButtonElement
 const tabRLHF = document.getElementById('tab-2') as HTMLInputElement
@@ -31,12 +34,17 @@ const readModelAnswersBtn = document.getElementById('readModelAnswersBtn') as HT
 const compareTurnBtn = document.getElementById('compareTurnBtn') as HTMLButtonElement
 const reEvaluateTurnBtn = document.getElementById('reEvaluateTurnBtn') as HTMLButtonElement
 const copyToClipboardBtn = document.getElementById('copyToClipboardBtn') as HTMLButtonElement
+const generateTestCodeBtn = document.getElementById('generateTestCodeBtn') as HTMLButtonElement
+const generateTestCodeDropdown = document.getElementById('generateTestCodeDropdown') as HTMLSelectElement
+const copyTestCodeBtn = document.getElementById('copyTestCodeBtn') as HTMLButtonElement
 const codeOutput = document.getElementById('codeOutput') as HTMLTextAreaElement
 const comparisonResponse = document.getElementById('comparisonResponse') as HTMLTextAreaElement
 const requestedChanges = document.getElementById('requestedChanges') as HTMLTextAreaElement
 const turnsSection = document.getElementById('turnsSection') as HTMLDivElement
 const turnDropdown = document.getElementById('turnDropdown') as HTMLSelectElement
 const languageDropdown = document.getElementById('languageDropdown') as HTMLSelectElement
+const turnsScreenshots = document.getElementById('turnsScreenshots') as HTMLDivElement
+const foldersBtn = document.getElementById('foldersBtn') as HTMLButtonElement
 // Static colab panel
 document.addEventListener('DOMContentLoaded', analyzeColab)
 document.addEventListener('mouseenter', analyzeColab)
@@ -58,28 +66,38 @@ readModelAnswersBtn.addEventListener('click', () => copyToClipboard(readModelAns
 compareTurnBtn.addEventListener('click', compareTurn)
 reEvaluateTurnBtn.addEventListener('click', reEvaluateTurn)
 compareTurnBtn.addEventListener('mouseenter', () => toggleTextarea('compare'))
-reEvaluateTurnBtn.addEventListener('mouseenter', () => toggleTextarea('reevaluate'))
 copyToClipboardBtn.addEventListener('click', () => copyToClipboard(copyToClipboardBtn.getAttribute('data-code')!, copyToClipboardBtn))
-turnDropdown.addEventListener('mouseenter', getTurnsCount)
+reEvaluateTurnBtn.addEventListener('mouseenter', () => toggleTextarea('reevaluate'))
+generateTestCodeBtn.addEventListener('click', generateTurnTestCode)
+copyTestCodeBtn.addEventListener('click', () => copyToClipboard(copyTestCodeBtn.getAttribute('data-code')!, copyTestCodeBtn))
+turnDropdown.addEventListener('mouseenter', getTaskInfo)
 turnDropdown.addEventListener('change', onTurnChange)
+foldersBtn.addEventListener('click', createFolders)
 
-function checkIfRLHF() {
+function initState() {
   chrome.tabs.query({ active: true, currentWindow: true, url: "https://rlhf-v3.turing.com/prompt/*" }, tabs => {
     if (tabs[0]) {
       tabRLHF.click()
-      getTurnsCount()
+      getTaskInfo()
+      document.addEventListener('mousemove', (event: MouseEvent) => {
+        turnsScreenshots.style.setProperty('--mouse-x', `-${event.clientX/2}px`);
+        turnsScreenshots.style.setProperty('--mouse-y', `-${event.clientY/5}px`);
+      })
     }
   })
 }
 
-checkIfRLHF()
+initState()
 
 async function copyToClipboard(text: string, button: HTMLButtonElement) {
   navigator.clipboard.writeText(text)
   const originalText = button.textContent!
-  button.textContent = 'Copied!'
+  console.log(originalText);
+  const isIconButton = button.classList.contains('icon-button')
+  button.textContent = isIconButton ? '✅' : 'Copied!'
   await new Promise(resolve => setTimeout(resolve, 1000))
   button.textContent = originalText
+  console.log(button.textContent);
 }
 
 // Static colab panel
@@ -122,7 +140,7 @@ function getPrompt() {
 }
 
 function copyPrompt() {
-  copyToClipboard(prompt.value, copyPromptBtn)
+  copyToClipboard(promptTextArea.value, copyPromptBtn)
 }
 
 async function goToLLMReviewer() {
@@ -155,7 +173,7 @@ function checkThisReview() {
 async function askGPT() {
   askGPTBtn.disabled = true
   try {
-    const response = await answerPrompt(prompt.value)
+    const response = await answerPrompt(promptTextArea.value)
     askGPTBtn.classList.add('hidden')
     copyAnswersBtns.classList.remove('hidden')
     textArea.style.height = '0px'
@@ -163,7 +181,7 @@ async function askGPT() {
       textArea.classList.add('hidden')
       copyPromptBtn.innerText = 'Copy prompt'
       copyPromptBtn.classList.add('code-hover')
-      copyPromptBtn.setAttribute('data-code', prompt.value)
+      copyPromptBtn.setAttribute('data-code', promptTextArea.value)
     })
     copyExamplesBtn.addEventListener('click', () => copyToClipboard(response.examplesText ?? "", copyExamplesBtn))
     copyExamplesBtn.setAttribute('data-code', response.examplesText ?? "")
@@ -277,12 +295,12 @@ function convertToUnitTestHandler() {
  * Get the model answers from the selected turn
  * Prompt, Model A response, Model B response
  */
-async function getModelAnswers(): Promise<string | any> {
+async function getModelAnswers(): Promise<Record<'prompt' | 'model_a' | 'model_b', string>> {
   const turn = turnDropdown.value === "-1" ? null : parseInt(turnDropdown.value)
   return new Promise((resolve, reject) => {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       if (tabs[0] === undefined) { reject(); return; }
-      chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.READ_MODEL_ANSWERS, turn: turn }, (answers: Record<string, any>) => {
+      chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.READ_MODEL_ANSWERS, turn: turn }, (answers: Record<'prompt' | 'model_a' | 'model_b', string>) => {
         resolve(answers)
       })
     })
@@ -303,18 +321,25 @@ async function getRLHFPrompt(): Promise<string | undefined> {
   })
 }
 
-async function getTurnsCount() {
+/**
+ * Get the number of turns from the current tab and the task id
+ */
+async function getTaskInfo() {
   chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
     if (tabs[0] === undefined) { return; }
-    chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.GET_TURNS_COUNT }, (count: number) => {
+    chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.GET_TASK_INFO }, (taskInfo: { turnsCount: number, taskId: string }) => {
+      const { turnsCount, taskId } = taskInfo
       const currentCount = turnDropdown.options.length
-      if (currentCount !== count) {
+      if (currentCount !== turnsCount) {
         turnDropdown.innerHTML = ''
-        for (let i = 1; i <= count; i++) {
+        for (let i = 1; i <= turnsCount; i++) {
           turnDropdown.innerHTML += `<option value="${i}">Turn ${i}</option>`
         }
-        turnDropdown.value = count.toString()
+        turnDropdown.value = turnsCount.toString()
       }
+      taskIdParagraph.textContent = taskId
+      copyTaskIdBtn.addEventListener('click', () => copyToClipboard(taskId, copyTaskIdBtn))
+      copyTaskIdBtn.disabled = false
     })
   })
 }
@@ -333,7 +358,7 @@ function toggleTextarea(type: 'compare' | 'reevaluate') {
 async function readModelAnswers() {
   const answers = await getModelAnswers()
   if (answers) {
-    readModelAnswersBtn.textContent = 'Copy model answers'
+    readModelAnswersBtn.textContent = 'Copy answers'
     readModelAnswersBtn.classList.add('code-hover', 'paragraph')
     readModelAnswersBtn.setAttribute('data-code', `${answers.prompt}\n\nModel A response:\n${answers.model_a}\n\nModel B response:\n${answers.model_b}`)
   }
@@ -356,7 +381,7 @@ async function generateRLHFTurns() {
   if (prompt) {
     const response = await generateRLHFConversation(prompt, languageDropdown.value)
     generateRLHFTurnsBtn.disabled = false
-    turnsSection.append(...Array.from(buildTurnsSection(response).childNodes))
+    turnsSection.append(...Array.from(buildTurnsSection(response)))
     generateRLHFTurnsBtn.remove()
   }
 }
@@ -377,9 +402,10 @@ async function fillAnswersOnDom(answers: string | Record<string, any>) {
   chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
     if (tabs[0] === undefined) { return; }
     const turn = turnDropdown.value === "-1" ? null : parseInt(turnDropdown.value)
-    chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.PASTE_RLHF_ANSWERS, answers: parsedAnswers, turn: turn }, async (_: string) => {
+    const urls = Array.from(createFoldersSection.lastElementChild?.children ?? []).map(child => (child as HTMLAnchorElement).href)
+    const folderLinks = urls.length > 1 ? { model_a: urls[0], model_b: urls[1] } : undefined
+    chrome.tabs.sendMessage(tabs[0].id!, { source: MessageType.PASTE_RLHF_ANSWERS, answers: parsedAnswers, turn: turn, folderLinks: folderLinks }, async (_: string) => {
       // alert(_)
-      console.log(_)
     })
   })
 }
@@ -407,10 +433,110 @@ async function reEvaluateTurn() {
   }
   reEvaluateTurnBtn.disabled = false
 }
+
+async function generateTurnTestCode() {
+  generateTestCodeBtn.disabled = true
+  const model = generateTestCodeDropdown.value as "model_a" | "model_b"
+  const answers = await getModelAnswers()
+  if (answers) {
+    const response = await generateTestCode(answers.prompt, answers[model])
+    copyTestCodeBtn.setAttribute('data-code', response)
+    copyTestCodeBtn.disabled = false
+  }
+  generateTestCodeBtn.disabled = false
+}
+
+async function createFolders() {
+  const taskId = taskIdParagraph.textContent
+  if (!taskId) { return; }
+
+  foldersBtn.disabled = true
+  const response = await createFoldersOnDrive(taskId)
+  foldersBtn.disabled = false
+  foldersBtn.textContent = 'Upload screenshots'
+  foldersBtn.removeEventListener('click', createFolders)
+  foldersBtn.addEventListener('click', uploadScreenshots)
+
+  const keys: ("model_a" | "model_b")[] = ["model_a", "model_b"]
+  keys.forEach((key, _) => {
+    const a = document.createElement('a')
+    a.href = response[key]
+    a.textContent = '📁 ' + key.toUpperCase().replace('_', ' ')
+    a.target = '_blank'
+    createFoldersSection.lastElementChild!.appendChild(a)
+  })
+
+  turnsScreenshots.classList.remove('hidden')
+  turnsScreenshots.addEventListener('paste', (event: ClipboardEvent) => {
+    const items = event.clipboardData?.items
+    if (!items) { return; }
+    for (const item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile()
+
+        const reader = new FileReader();
+
+        reader.onloadend = (e) => {
+          const url = e.target?.result as string
+          const turn = prompt("Turn number", turnDropdown.value)
+          const model = prompt("Model name(a/b/ideal)")
+          if (!turn || !model) { return; }
+          const col = document.createElement('div')
+          col.classList.add('col')
+          const img: HTMLImageElement = document.createElement('img')
+          img.src = url
+          img.setAttribute('data-turn', turn)
+          img.setAttribute('data-model', model)
+          col.appendChild(img)
+          const p = document.createElement('p')
+          p.textContent = `Turn ${turn} - Model ${model.toUpperCase()}`
+          col.appendChild(p)
+          const images = Array.from(turnsScreenshots.lastElementChild!.querySelectorAll('img'))
+          const index = images.findIndex(img => {
+            const aTurn = parseInt(img.getAttribute('data-turn')!)
+            const bTurn = parseInt(turn)
+            const aModel = img.getAttribute('data-model')!
+            const bModel = model
+            return aTurn > bTurn || (aTurn === bTurn && aModel > bModel)
+          })
+          turnsScreenshots.lastElementChild!.insertBefore(col, images[index]?.parentElement)
+          img.addEventListener('click', () => {
+            const currentSuffix = img.getAttribute('data-suffix')
+            if (currentSuffix) {
+              p.textContent = p.textContent!.replace(` (${currentSuffix})`, '')
+            }
+            const suffix = prompt("Suffix", currentSuffix ?? undefined)
+            if (suffix) {
+              img.setAttribute('data-suffix', suffix)
+              p.textContent += ` (${suffix})`
+            }
+          })
+        };
+        reader.readAsDataURL(file!);
+      }
+    }
+  });
+}
+
+async function uploadScreenshots() {
+  const taskId = taskIdParagraph.textContent
+  if (!taskId) { return; }
+  foldersBtn.disabled = true
+  const images = Array.from(turnsScreenshots.lastElementChild!.querySelectorAll('img')).map(img => ({
+    turn: img.getAttribute('data-turn')!,
+    model: img.getAttribute('data-model')!,
+    image: img.src,
+    suffix: img.getAttribute('data-suffix')
+  }))
+  const response = await uploadScreenshotsOnDrive(taskId, images)
+  console.log(response)
+  foldersBtn.disabled = false
+  turnsScreenshots.lastElementChild!.innerHTML = ''
+}
+
 /*
 TODOs:
-
-- [ ] Fix column layout
+- [x] Fix column layout
 - [x] Add loading to button
 - [x] Clear all elements on new turn
 - [ ] Use session/local storage to store the code output

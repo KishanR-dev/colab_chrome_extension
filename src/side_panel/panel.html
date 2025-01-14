@@ -49,7 +49,12 @@
         <div class="tab">
             <label for="tab-2">RLHF helper</label>
             <input id="tab-2" name="tabs-two" type="radio">
-            <div class="tab-content">
+            <div class="col tab-content">
+                <div class="row">
+                    <h2>Task ID:</h2>
+                    <p id="taskIdParagraph"></p>
+                    <button id="copyTaskIdBtn" class="icon-button" disabled>🔗</button>
+                </div>
                 <div class="row">
                     <h2>Language:</h2>
                     <select id="languageDropdown">
@@ -59,34 +64,56 @@
                 </div>
                 <h2>Generate turns</h2>
                 <div class="row">
-                    <button id="readRLHFPromptBtn" class="button">Read prompt</button>
+                    <button id="readRLHFPromptBtn" class="button secondary">Read prompt</button>
                     <button id="generateRLHFTurnsBtn" class="button loading-button">⚛️ | Generate turns</button>
                 </div>
                 <div class="row">
-                    <h2 style="display: inline-block; margin-right: 12px;">Compare answers</h2>
+                    <h2>Compare answers</h2>
                     <select id="turnDropdown">
                         <option value="1">Turn 1</option>
                     </select>
                 </div>
                 <div class="row">
-                    <button id="readModelAnswersBtn" class="button">Read answer</button>
-                    <button id="showClipboardBtn" class="button">Paste from clipboard</button>
+                    <button id="readModelAnswersBtn" class="button secondary">Read answer</button>
+                    <button id="showClipboardBtn" class="button secondary">Paste from clipboard</button>
                 </div>
                 <div class="row">
                     <button id="compareTurnBtn" class="button loading-button">⚛️ | Compare turn</button>
-                    <button id="copyToClipboardBtn" class="square" disabled>🔗</button>
+                    <button id="copyToClipboardBtn" class="icon-button" disabled>🔗</button>
                     <button id="reEvaluateTurnBtn" class="button loading-button">⚛️ | Reevaluate</button>
-                    <div class="col">
-                        <h3>Code output (optional)</h3>
-                        <textarea id="codeOutput">Model A:
+                </div>
+                <div class="col w-100">
+                    <h3>Code output (optional)</h3>
+                    <textarea id="codeOutput">Model A:
 
 Model B:
 </textarea>
-                    </div>
-                    <textarea id="comparisonResponse" hidden placeholder="Comparison response (json)"></textarea>
-                    <textarea id="requestedChanges" hidden placeholder="Requested changes"></textarea>
                 </div>
+                <textarea id="comparisonResponse" hidden placeholder="Comparison response (json)"></textarea>
+                <textarea id="requestedChanges" hidden placeholder="Requested changes"></textarea>
                 <div id="turnsSection"></div>
+                <div class="col">
+                    <div class="row">
+                        <h2>Generate test code</h2>
+                        <select id="generateTestCodeDropdown">
+                            <option value="model_a">Model A</option>
+                            <option value="model_b">Model B</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <button id="generateTestCodeBtn" class="button loading-button">⚛️ | Generate test code</button>
+                        <button id="copyTestCodeBtn" class="icon-button" disabled>🔗</button>
+                    </div>
+                </div>
+                <div id="createFoldersSection" class="col">
+                    <h2>Create screenshots folders</h2>
+                    <div id="turnsScreenshots" class="row pasteArea hidden">
+                        <p>Paste your file here</p>
+                        <div class="images"></div>
+                    </div>
+                    <button id="foldersBtn" class="button loading-button">Create folders</button>
+                    <div class="urls row"></div>
+                </div>
             </div>
         </div>
     </div>

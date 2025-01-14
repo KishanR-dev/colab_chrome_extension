@@ -18,7 +18,7 @@ enum MessageType {
     GET_PROMPT = "getPrompt",
     GPT_RESPONSE = "gptResponse",
     GET_RLHF_PROMPT = "getRLHFPrompt",
-    GET_TURNS_COUNT = "getTurnsCount",
+    GET_TASK_INFO = "getTaskInfo",
     PASTE_RLHF_ANSWERS = "pasteRLHFAnswers",
     READ_MODEL_ANSWERS = "readModelAnswers"
 }

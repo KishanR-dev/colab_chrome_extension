@@ -2,6 +2,8 @@
     --green: #4CAF50;
     --dark-green: #216725;
     --grey: #f5f5f5;
+    --mouse-x: 0;
+    --mouse-y: 0;
 }
 
 body {
@@ -53,13 +55,13 @@ button.secondary {
     border: 1px solid var(--green);
 }
 
-button.square {
-    background-color: var(--grey);
+button.icon-button {
+    background-color: transparent;
     border: 1px solid var(--grey);
-    margin-left: 4px;
 }
 
-button.square:hover:enabled {
+button.icon-button:hover:enabled {
+    background-color: transparent;
     border: 1px solid var(--green);
 }
 
@@ -83,13 +85,19 @@ textarea:focus {
     height: 256px;
 }
 
+a {
+    color: var(--green);
+    margin-right: 4px;
+    text-decoration: none;
+}
+
 .loading-button:disabled {
     background-color: var(--dark-green);
     cursor: wait;
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .count-section {
@@ -149,8 +157,45 @@ textarea:focus {
 }
 
 .col {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
+}
+
+.row {
+    display: ruby;
+}
+
+.row h2 {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.pasteArea {
+    border: 2px dashed #ccc;
+    padding: 20px;
+}
+
+#turnsScreenshots .images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+#turnsScreenshots .images img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    transition: all 0.3s ease-in-out;
+}
+
+#turnsScreenshots .images img:hover {
+    border: 2px solid var(--green);
+    transform: translate(var(--mouse-x), var(--mouse-y)) scale(5);
+    transition: all 0.1s;
 }
 
 /* Turns */
