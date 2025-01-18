@@ -212,41 +212,45 @@ async function fillAnswers(answers: Record<string, any>, turn: number | null = n
             }
 
             // Copy links from previous turns
-            if (true) {
-                let prevModel = i > 2 ? collapseContents[i - 3] : undefined
-                let prevTextAreas = prevModel?.getElementsByTagName("textarea")
+            let prevModel = i > 2 ? collapseContents[i - 3] : undefined
+            let prevTextAreas = prevModel?.getElementsByTagName("textarea")
 
-                // Code environment
-                if (prevTextAreas != undefined) {
-                    const link = prevTextAreas[5].value
-                    if (link.startsWith("https://")) {
-                        const copyLinkBtn = elementHandler.createButton(link, { onClickCopy: link })
-                        textAreas[5].parentElement?.insertBefore(copyLinkBtn, textAreas[5])
-                        const click = () => {
-                            copyLinkBtn.click()
-                            textAreas[5].removeEventListener("click", click)
-                        }
-                        textAreas[5].addEventListener("click", click)
-                    }
+            // Code environment
+            let link = prevTextAreas?.[5]?.value
+            let text = link
+            if (link?.startsWith("https://") || link == undefined) {
+                if (link?.includes("stackblitz") || link == undefined) {
+                    const taskId = getTaskId()
+                    link = `https://stackblitz.com/edit/rlhf?file=${taskId}%2F${turn}${modelKey.slice(5)}%2Fcode.js`
+                    text = "Stackblitz"
                 }
-                // Code screenshots folder
-                let link = prevTextAreas?.[6]?.value ?? folderLinks?.[modelKey]
-                if (link != undefined && !link.startsWith("https://")) {
-                    prevModel = collapseContents[i - 6]
-                    prevTextAreas = prevModel?.getElementsByTagName("textarea")
-                    if (prevTextAreas != undefined) {
-                        link = prevTextAreas[6].value
-                    }
-                }
-                if (link?.startsWith("https://") && textAreas[6].value != link) {
-                    const copyLinkBtn = elementHandler.createButton("Copy link", { onClickCopy: link })
-                    textAreas[6].parentElement?.insertBefore(copyLinkBtn, textAreas[6])
+                if (text != undefined) {
+                    const copyLinkBtn = elementHandler.createButton(text, { onClickCopy: link })
+                    textAreas[5].parentElement?.insertBefore(copyLinkBtn, textAreas[5])
                     const click = () => {
                         copyLinkBtn.click()
-                        textAreas[6].removeEventListener("click", click)
+                        textAreas[5].removeEventListener("click", click)
                     }
-                    textAreas[6].addEventListener("click", click)
+                    textAreas[5].addEventListener("click", click)
                 }
+            }
+            // Code screenshots folder
+            link = prevTextAreas?.[6]?.value ?? folderLinks?.[modelKey]
+            if (link != undefined && !link.startsWith("https://")) {
+                prevModel = collapseContents[i - 6]
+                prevTextAreas = prevModel?.getElementsByTagName("textarea")
+                if (prevTextAreas != undefined) {
+                    link = prevTextAreas[6].value
+                }
+            }
+            if (link?.startsWith("https://") && textAreas[6].value != link) {
+                const copyLinkBtn = elementHandler.createButton("Copy link", { onClickCopy: link })
+                textAreas[6].parentElement?.insertBefore(copyLinkBtn, textAreas[6])
+                const click = () => {
+                    copyLinkBtn.click()
+                    textAreas[6].removeEventListener("click", click)
+                }
+                textAreas[6].addEventListener("click", click)
             }
         }
     }
