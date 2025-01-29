@@ -34,3 +34,5 @@ The ***Colab Static Reviewer & RLHF Helper*** is a powerful tool designed to ens
 ## Usage
 
 Once installed, you can start using the Colab Static Reviewer & RLHF Helper directly in your Google Colab environment. Follow the on-screen instructions to utilize the various features of the tool.
+
+**Note:** You will need to run the [backend](https://github.com/JoelBorrero/colab_static_reviewer) project in your local host. **Requirements:** Anthropic/OpenAI API key and Docker.
