@@ -1,53 +1,36 @@
-# Colab Static Reviewer
+# Colab Static Reviewer & RLHF Helper
+
+![preview](./csr_rlhf.jpg)
 
 ## Description
-Colab Static Reviewer is a Chrome extension designed to help users review the format and structure of their Google Colab notebooks. This tool performs static analysis on Colab notebooks, providing insights into language-specific content, naming conventions, and test cases.
 
-- Analyzes the current active Google Colab notebook
-- Provides a detailed report in an easy-to-read sidebar
+The ***Colab Static Reviewer & RLHF Helper*** is a powerful tool designed to ensure that your Google Colab files are well-formatted. This tool not only checks the formatting but also enhances your workflow with the RLHF (Reinforcement Learning from Human Feedback) helper functionalities.
 
-## Features
-- Identifies language-specific content
-- Checks for the length of the solution block
-- Detects snake_case and camelCase usages
-- Highlights test cases
-- Format the prompt and starter code to ask to GPT or copy to clipboard
-- Buttons to open the LLM reviewer and copy the colab id if it has not been reviewed yet
-- Translate the Swift code to Python using GPT
-- Draft (static code, not GPT) a translation of the Swift tests to Python
+### Features
 
+- **Google Colab Formatting Checker**:
+  - Automatically checks if your Colab notebooks are formatted correctly.
+  - Translate (static code, not AI) the `unittest` cases from Swift to Python.
+- **RLHF Helper**: 
+  - Copy prompts with a single click.
+  - Generate conversation turns using AI in the backend.
+  - Compare AI-generated responses in the backend (Claude 3.5).
+  - Re-evaluate responses and generate test code to verify functionality.
+  - Automatically paste content from the backend into the DOM for easy manual review.
+- **Google Drive Integration**: Create folders in Google Drive and upload screenshots of each turn in a generated dropdown area.
 
-## Installation
-1. Clone this repository or download the source code
-2. Open Chrome and navigate to `chrome://extensions`
-3. Enable "Developer mode" in the top right corner
-4. Click "Load unpacked" and select the directory containing the extension files
+## Installation Steps
+
+1. Clone the repository or download the source code.
+2. Navigate to the project directory.
+3. Run the following command to build the project:
+   ```bash
+   npm run build
+   ```
+4. Open Chrome and go to `chrome://extensions/`.
+5. Enable "Developer mode" in the top right corner.
+6. Click on "Load unpacked" and select the `dist` folder from your project.
 
 ## Usage
-1. Navigate to a Google Colab notebook in Chrome
-2. Click on the Colab Static Reviewer extension icon in the toolbar
-3. The extension will automatically analyze the current notebook and display the results in a popup
 
-## Project Structure
-- `manifest.json`: Extension configuration file
-- `src/`: Source code directory
-  - `sidebar/`: Contains files for the extension sidebar
-    - `sidebar.html`: HTML structure for the sidebar
-    - `sidebar.js`: JavaScript for sidebar functionality
-    - `sidebar.css`: Styles for the sidebar
-  - `background/`: Contains background scripts
-    - `background.js`: Handles the main analysis logic
-  - `scripts/`: Contains content scripts
-    - `read_cells.js`: Extracts cell content from the Colab notebook
-
-## Development
-To modify or extend the extension:
-1. Make changes to the relevant files in the `src/` directory
-2. Update the `manifest.json` file if necessary
-3. Reload the extension in Chrome to see your changes
-
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-This project is licensed under the MIT License.
+Once installed, you can start using the Colab Static Reviewer & RLHF Helper directly in your Google Colab environment. Follow the on-screen instructions to utilize the various features of the tool.
