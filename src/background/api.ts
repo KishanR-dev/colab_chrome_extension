@@ -2,7 +2,6 @@ import { GPTResponse, Turn } from "../models.js"
 import { convertToNaturalLanguage } from "./utils.js"
 
 const _host = "http://localhost:3000"
-// const _host = "https://d0a1-188-247-159-42.ngrok-free.app"
 
 // Static Colab Analyzer
 async function answerPrompt(prompt: string): Promise<GPTResponse> {

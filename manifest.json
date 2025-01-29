@@ -1,27 +1,30 @@
 {
-    "name": "Colab Static Reviewer",
-    "version": "0.1",
-    "description": "This extension will help you to review the format and structure of your Google Colab notebooks",
-    "manifest_version": 3,
-    "permissions": [
-        "activeTab", "clipboardRead", "scripting", "sidePanel", "storage", "tabs"
-    ],
-    "side_panel": {
-        "default_path": "src/side_panel/panel.html"
-    },
-    "background": {
-        "service_worker": "src/background/background.js",
-        "type": "module"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "https://colab.research.google.com/*",
-                "https://rlhf-v3.turing.com/prompt/*"
-            ],
-            "js": [
-                "src/scripts/read_cells.js"
-            ]
-        }
-    ]
+  "name": "Colab Static Reviewer",
+  "version": "0.2",
+  "description": "Review the format and structure of your Google Colab notebooks and compare the answers of two models in RLHF",
+  "manifest_version": 3,
+  "permissions": [
+    "activeTab",
+    "clipboardRead",
+    "scripting",
+    "sidePanel",
+    "storage",
+    "tabs"
+  ],
+  "side_panel": {
+    "default_path": "src/side_panel/panel.html"
+  },
+  "background": {
+    "service_worker": "src/background/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://colab.research.google.com/*",
+        "https://rlhf-v3.turing.com/prompt/*"
+      ],
+      "js": ["src/scripts/read_cells.js"]
+    }
+  ]
 }
